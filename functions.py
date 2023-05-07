@@ -18,7 +18,7 @@ def offer_ride() :
         lcode_locations = list(map(input("enter the location_codes for source and dstination ")))
        
         # asking whether they want to   put any cno or not 
-     
+        rno = c.lastrowid
         condition = True
         while condition : 
             car_question = input("Enter yes if you want add any car nno")
@@ -31,48 +31,25 @@ def offer_ride() :
         #asking enroute information 
         enroute_question = input("Type yes if you want to enter any enroute information/ lcode: ")
         if enroute_question == 'yes' :
+            enroute_lcode = input("Enter the enroute lcode: ")
+            enroute_location = lcode_locations(enroute_lcode)
+            # adding enroute information into he table enroute 
+            c.execute(''' INSERT INTO enroute VALUES(?,?)''',rno,enroute_location[3]) 
             
-        # c.execute(''' SELECT * FROM locations WHERE LOWER(?) = lcode ''', (lcode_locations[0]))
-        # code_find = c.fetchone()
-        # if code_find != None : 
-        #     print("lcode is a location code ")
-        # else :  
-        #     selected_locations = []
-        #     for i in range(len(lcode_locations)) : 
-        #         if i == 0 : 
-        #             print("Searching for source ")
-        #         elif i == 1 :
-        #             print("Searching the destination ")
-        #         else :
-        #             print("Searching for the enroute ")
-                
-        #         c.execute("SELECT * FROM locations WHERE LOWER(city) LIKE '%' || ? || '%' OR LOWER(prov) LIKE '%' || ? || '%' OR LOWER(address) LIKE '%' || ? || '%'", (lcode_locations[i],lcode_locations[i],lcode_locations[i]))
-        #         matches = c.fetchall()  
-        #         if len(matches) > 0 : 
-        #             break_for_matches = False
-        #             print("finding matches for the source and destination location ")
-        #             for i in range(len(matches)) :
-        #                 if i == 5 :
-        #                     break_for_matches = input("if you want to see more lcoations enter True")
-        #                     if  break_for_matches == False:
-        #                         break
-                            
-        #                     else : 
-        #                         print(" %s ", matches[i])
-        #                 else : 
-        #                     print(" %s ", matches[i])
-                
-        #         location_number = int(input(" Enter the location that you want to select in number  "))
-        #         selected_locations.append(matches[location_number])
-        # rno = c.lastrowid
+            
+        # for source 
+        source_location = lcode_locations(source)
+        destination_location = lcode_locations(destination)
+        rno = c.lastrowid
         
-        # car_ask = input("enter True if you want to enter any car number")
-        # if car_ask : 
-        #     cno = input("Enter the car number: ")
-        #     if car_number_find(cno) : 
-        #         c.execute("INSERT INTO rides(rno,price, rdate, seats, lugDesc, src, dst, driver, cno) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?)", (rno,price_per_seat, date, seats, luggae_description, source, destination, email, cno))
-        
-        # print("Ride successfully added with ride number:", rno)
+        # email part is nor clear in the project -- 
+        if cno != 0 : 
+            email = car_owner_email(cno)
+            c.execute("INSERT INTO rides(rno,price, rdate, seats, lugDesc, src, dst, driver, cno) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?)", (rno,price_per_seat, date, seats, luggae_description, source_location, destination_location, email, cno))
+
+        else : 
+            c.execute("INSERT INTO rides(rno,price, rdate, seats, lugDesc, src, dst) VALUES (?,?, ?, ?, ?, ?, ?)", (rno,price_per_seat, date, seats, luggae_description, source_location, destination_location))    
+        print("Ride successfully added with ride number:", rno)
 
 def car_number_find(car_number) -> bool():
     c.execute(''' SELECT *
@@ -81,10 +58,39 @@ def car_number_find(car_number) -> bool():
     
     if c.fetchone() != None :
         return True  
-    return False     
-        
-        
+    return False    
+# finding the details of the car owner
+def car_owner_email(car_number) :
+    c.execute(''' SELECT M.email
+              FROM members M, cars C
+              WHERE cno = ?''', (car_number))
+    return c.fetchone()
+
+# functiont that finds whether its a lcode or is there any city with the similar lcode or charachters 
+def lcode_locations(lcode) : 
+        c.execute(''' SELECT * FROM locations WHERE LOWER(?) = lcode ''', (lcode))
+        code_find = c.fetchone()
+        if code_find != None : 
+            print("lcode is a location code ")
+        else :  
+            c.execute("SELECT * FROM locations WHERE LOWER(city) LIKE '%' || ? || '%' OR LOWER(prov) LIKE '%' || ? || '%' OR LOWER(address) LIKE '%' || ? || '%'", (lcode,lcode,lcode))
+            matches = c.fetchall()  
+            if len(matches) > 0 : 
+                print("finding matches: ")
+                for i in range(len(matches)) :
+                    if i == 5 :
+                        break_for_matches = input("if you want to see more lcoations enter True")
+                        if  break_for_matches == False:
+                            break
+                            
+                        else : 
+                            print(" %s ", matches[i])
+                    else : 
+                        print(" %s ", matches[i])
+                
+                location_number = int(input(" Enter the location that you want to select in number  "))
+                selected_location = matches[location_number][3]
+        return selected_location
         
 
-        
         
