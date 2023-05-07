@@ -5,10 +5,14 @@ import unseen
 ride_no = 0
 connection = sqlite3.connect("./sql.db")
 c = connection.cursor()
+
+# this is going to be the very first task after login i.e updating the messages. 
 def message_display() :
     login_asnwer = login.main_function()
     unseen.unseen_message_display()
     
+# this is a first major task of the project of offering a ride 
+
 def offer_ride() :
     option = input("type y if you want to offer a ride")
     if option == 'y' :
@@ -17,7 +21,8 @@ def offer_ride() :
         price_per_seat = int(price_per_seat)
         lcode_locations = list(map(input("enter the location_codes for source and dstination ")))
        
-        # asking whether they want to   put any cno or not 
+        # asking whether they want to   put any car_number or not 
+        
         rno = c.lastrowid
         condition = True
         while condition : 
@@ -28,7 +33,9 @@ def offer_ride() :
                     condition = False
             else : 
                 condition = False  
+                
         #asking enroute information 
+        
         enroute_question = input("Type yes if you want to enter any enroute information/ lcode: ")
         if enroute_question == 'yes' :
             enroute_lcode = input("Enter the enroute lcode: ")
@@ -39,18 +46,19 @@ def offer_ride() :
             
         # for source 
         source_location = lcode_locations(source)
-        destination_location = lcode_locations(destination)
-        rno = c.lastrowid
+        destination_location = lcode_locations(destination).   # for destination 
+        rno = c.lastrowid.  # rideno which is the primary key for the table rides 
         
-        # email part is nor clear in the project -- 
+        # email part is nor clear in the project -- have ot check whether it is mandatory to enter or not 
         if cno != 0 : 
             email = car_owner_email(cno)
             c.execute("INSERT INTO rides(rno,price, rdate, seats, lugDesc, src, dst, driver, cno) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?)", (rno,price_per_seat, date, seats, luggae_description, source_location, destination_location, email, cno))
-
+        # confirming whether 
         else : 
             c.execute("INSERT INTO rides(rno,price, rdate, seats, lugDesc, src, dst) VALUES (?,?, ?, ?, ?, ?, ?)", (rno,price_per_seat, date, seats, luggae_description, source_location, destination_location))    
         print("Ride successfully added with ride number:", rno)
 
+# checking whether the car_number enetered is valid or not !! 
 def car_number_find(car_number) -> bool():
     c.execute(''' SELECT *
               FROM members M, cars C
@@ -59,6 +67,7 @@ def car_number_find(car_number) -> bool():
     if c.fetchone() != None :
         return True  
     return False    
+
 # finding the details of the car owner
 def car_owner_email(car_number) :
     c.execute(''' SELECT M.email
@@ -67,6 +76,8 @@ def car_owner_email(car_number) :
     return c.fetchone()
 
 # functiont that finds whether its a lcode or is there any city with the similar lcode or charachters 
+# this is a general function that is determining whether the entered text is a lcode if not then its is finidng similar cities with text 
+
 def lcode_locations(lcode) : 
         c.execute(''' SELECT * FROM locations WHERE LOWER(?) = lcode ''', (lcode))
         code_find = c.fetchone()
